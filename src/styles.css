@@ -1,0 +1,560 @@
+/* Resolution-independent by design: every size below is vw/vh/vmin, not px.
+   The same layout renders correctly at native 2560x1440 (Pi/Chromium) and
+   at an upscaled 1920x1080 (Fire TV Stick), and previews sanely on a laptop
+   or phone too. See README.md "Why vw/vh instead of pixels". */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0b0e14;
+  color: #f4f4f6;
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-feature-settings: "tnum" 1;
+}
+
+:root {
+  --business: #f2a93b;
+  --personal: #4c8dff;
+  --accent: #ffd479;
+  --danger: #ff6b6b;
+  --festival: #4dd0c4;
+  --glass-bg: rgba(13, 16, 26, 0.58);
+  --glass-border: rgba(255, 255, 255, 0.09);
+}
+
+#bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.bg-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 2.5s ease-in-out;
+  filter: saturate(0.9) brightness(0.75);
+}
+
+.bg-photo.visible { opacity: 1; }
+
+.bg-fallback {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 25% 15%, #1c2540, #0b0e14 70%);
+  display: none;
+}
+
+.bg-fallback.visible { display: block; }
+
+.bg-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(4, 6, 12, 0.72) 0%, rgba(4, 6, 12, 0.55) 45%, rgba(4, 6, 12, 0.8) 100%);
+}
+
+/* ---- shared glass panel ---- */
+
+.panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-radius: 1.2vmin;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.35);
+}
+
+/* ---- app shell ---- */
+/* #app is a row: the main column (topbar + months + legend) on the left,
+   the full-height festival sidebar on the right. */
+
+#app {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  padding: 2.4vmin 2.6vmin;
+  gap: 1.6vmin;
+}
+
+#main-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6vmin;
+}
+
+/* ---- top bar: clock | countdown | conflicts ---- */
+
+#topbar {
+  display: flex;
+  gap: 1.6vmin;
+  height: 21vh;
+  flex: 0 0 auto;
+}
+
+#clock-block {
+  flex: 0 0 20vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.4vmin;
+  text-align: center;
+}
+
+#phase-icon {
+  font-size: 3.4vmin;
+  line-height: 1;
+}
+
+#clock-time {
+  font-size: 5.6vmin;
+  font-weight: 200;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+#phase-label {
+  font-size: 1.7vmin;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-top: 0.2vmin;
+}
+
+#date-line {
+  font-size: 1.5vmin;
+  opacity: 0.75;
+  margin-top: 0.6vmin;
+}
+
+#countdown-block,
+#conflicts-block {
+  padding: 1.6vmin 2vmin;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#countdown-block { flex: 1 1 auto; }
+#conflicts-block { flex: 0 0 24vw; }
+
+#countdown-block h2,
+#conflicts-block h2 {
+  font-size: 1.4vmin;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.65;
+  margin: 0 0 1.1vmin 0;
+  flex: 0 0 auto;
+}
+
+#countdown-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9vmin;
+  overflow: hidden;
+  align-content: flex-start;
+}
+
+.countdown-chip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.9vmin;
+  padding: 0.9vmin 1.3vmin;
+  border-radius: 0.9vmin;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 0.45vmin solid var(--personal);
+  max-width: 30vw;
+}
+
+.countdown-chip .cc-days {
+  font-size: 2.1vmin;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.countdown-chip .cc-title {
+  font-size: 1.5vmin;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 20vw;
+}
+
+#countdown-empty,
+#conflicts-empty {
+  font-size: 1.4vmin;
+  opacity: 0.55;
+  margin: 0;
+}
+
+#conflicts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9vmin;
+  overflow: hidden;
+}
+
+.conflict-row {
+  font-size: 1.35vmin;
+  padding: 0.8vmin 1vmin;
+  border-radius: 0.7vmin;
+  background: rgba(255, 107, 107, 0.14);
+  border-left: 0.4vmin solid var(--danger);
+  line-height: 1.35;
+}
+
+.conflict-row .cr-date {
+  display: block;
+  opacity: 0.65;
+  font-size: 1.15vmin;
+  margin-bottom: 0.2vmin;
+}
+
+.conflict-row .cr-title { font-weight: 600; }
+
+/* ---- three-month grid ---- */
+
+#months {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 1.6vmin;
+  min-height: 0;
+}
+
+.month-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.6vmin 1.8vmin;
+  min-width: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease, flex-grow 0.4s ease;
+}
+
+/* Previous/next months: smaller and dimmer, dots-only day cells. */
+.month-card.month-adjacent {
+  flex: 0.78 1 0;
+  opacity: 0.72;
+  transform: scale(0.94);
+}
+
+/* Current month: the one you actually act on — bigger, brighter, and each
+   day cell gets room to show event/festival text, not just a dot. */
+.month-card.month-current {
+  flex: 1.55 1 0;
+  opacity: 1;
+  transform: scale(1);
+  border-color: rgba(255, 212, 121, 0.35);
+  box-shadow: 0 1vmin 4vmin rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 212, 121, 0.12) inset;
+}
+
+.month-title {
+  font-size: 2vmin;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0 0 1.2vmin 0;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.month-title .month-tag {
+  font-size: 1.15vmin;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.55;
+}
+
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 1.15vmin;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+  margin-bottom: 0.6vmin;
+  flex: 0 0 auto;
+}
+
+.weekday-row span { text-align: center; }
+
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 0.45vmin;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.day-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2vmin;
+  border-radius: 0.6vmin;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  padding: 0.2vmin 0.3vmin;
+}
+
+.day-cell.out-of-month {
+  opacity: 0.28;
+}
+
+.day-cell.today {
+  background: linear-gradient(145deg, rgba(255, 212, 121, 0.9), rgba(242, 169, 59, 0.75));
+  box-shadow: 0 0.4vmin 1.6vmin rgba(255, 212, 121, 0.5);
+}
+
+.day-cell.today .day-num { color: #14100a; font-weight: 800; }
+
+.day-cell.has-conflict {
+  outline: 0.22vmin solid var(--danger);
+  outline-offset: -0.22vmin;
+}
+
+.day-num {
+  font-size: 1.5vmin;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.month-current .day-num { font-size: 1.7vmin; }
+
+.day-marks {
+  display: flex;
+  align-items: center;
+  gap: 0.3vmin;
+  height: 0.9vmin;
+}
+
+.day-dot {
+  width: 0.6vmin;
+  height: 0.6vmin;
+  border-radius: 50%;
+}
+
+.day-star {
+  position: absolute;
+  top: 0.3vmin;
+  right: 0.45vmin;
+  font-size: 1vmin;
+  color: var(--accent);
+  text-shadow: 0 0 0.6vmin rgba(255, 212, 121, 0.8);
+}
+
+.day-cell.today .day-star { color: #14100a; text-shadow: none; }
+
+.day-conflict-flag {
+  position: absolute;
+  top: 0.25vmin;
+  left: 0.4vmin;
+  font-size: 0.95vmin;
+  font-weight: 800;
+  color: var(--danger);
+}
+
+/* Text labels inside a day cell — an event title (current month only, more
+   room) and/or a festival name (all three months, sized down on the
+   smaller adjacent cards). */
+.day-label {
+  width: 100%;
+  font-size: 0.85vmin;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.day-label-event {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.3vmin;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.day-label-event .day-label-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-label-event .day-label-count {
+  flex: 0 0 auto;
+  opacity: 0.65;
+  font-size: 0.9em;
+}
+
+.day-label-festival {
+  font-weight: 700;
+  color: var(--festival);
+  text-shadow: 0 0 0.5vmin rgba(77, 208, 196, 0.5);
+}
+
+.month-current .day-label {
+  font-size: 1.05vmin;
+}
+
+.day-cell.today .day-label-festival {
+  color: #0d3934;
+  text-shadow: none;
+}
+
+.day-cell.today .day-label-event {
+  color: #14100a;
+  opacity: 1;
+}
+
+/* ---- footer legend ---- */
+
+#legend {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 3vmin;
+  font-size: 1.3vmin;
+  opacity: 0.7;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6vmin;
+}
+
+.legend-dot {
+  width: 0.9vmin;
+  height: 0.9vmin;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+#legend-dot-business { background: var(--business); }
+#legend-dot-personal { background: var(--personal); }
+
+.legend-star { color: var(--accent); font-size: 1.3vmin; }
+.legend-conflict { color: var(--danger); font-weight: 800; font-size: 1.3vmin; }
+
+.legend-festival-dot {
+  width: 0.9vmin;
+  height: 0.9vmin;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--festival);
+}
+
+/* ---- festival sidebar (full-height, right edge) ---- */
+
+#festival-sidebar {
+  flex: 0 0 16.5vw;
+  display: flex;
+  flex-direction: column;
+  padding: 2vmin 1.6vmin;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#festival-sidebar h2 {
+  font-size: 1.5vmin;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  opacity: 0.7;
+  margin: 0 0 1.4vmin 0;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+#festival-list {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vmin;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.festival-row {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 0.7vmin;
+  padding: 0 0.7vmin;
+  border-radius: 0.55vmin;
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 0;
+}
+
+.festival-row.is-past {
+  opacity: 0.38;
+}
+
+.festival-row.is-next {
+  background: rgba(77, 208, 196, 0.16);
+  border-left: 0.35vmin solid var(--festival);
+}
+
+.festival-date {
+  flex: 0 0 auto;
+  font-size: 1.15vmin;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--festival);
+  min-width: 4vw;
+}
+
+.festival-name {
+  flex: 1 1 auto;
+  font-size: 1.25vmin;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.festival-days {
+  flex: 0 0 auto;
+  font-size: 1.05vmin;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+@media (max-aspect-ratio: 4/3) {
+  /* Phone/portrait preview fallback — not the target use case, but keep it
+     from looking broken if someone opens the URL on a phone to check data. */
+  #app { padding: 3vmin; flex-direction: column; overflow-y: auto; }
+  #topbar { flex-direction: column; height: auto; }
+  #clock-block { flex: 0 0 auto; }
+  #conflicts-block { flex: 0 0 auto; }
+  #months { flex-direction: column; }
+  .month-card { flex: 0 0 auto; min-height: 45vh; }
+  #festival-sidebar { flex: 0 0 auto; max-height: 40vh; }
+}

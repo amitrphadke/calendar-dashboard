@@ -1,0 +1,47 @@
+name: Build and deploy dashboard
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          ICS_URL_BUSINESS: ${{ secrets.ICS_URL_BUSINESS }}
+          ICS_URL_PERSONAL: ${{ secrets.ICS_URL_PERSONAL }}
+          ICS_URL_ICLOUD: ${{ secrets.ICS_URL_ICLOUD }}
+          IMPORTANT_WINDOW_DAYS: ${{ vars.IMPORTANT_WINDOW_DAYS }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

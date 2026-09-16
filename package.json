@@ -1,0 +1,18 @@
+{
+  "name": "calendar-dashboard",
+  "version": "1.0.0",
+  "description": "Self-hosted always-on wall dashboard: calendar (Google + iCloud), clock, rotating photos. Runs as a static site in any kiosk browser (Chromium on a Pi, Fully Kiosk on Fire TV / Android TV).",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "fetch:calendars": "node scripts/fetch-calendars.mjs",
+    "fetch:photos": "node scripts/gen-photos-manifest.mjs",
+    "test": "node scripts/test-parse.mjs",
+    "serve": "node scripts/serve.mjs",
+    "demo": "node scripts/build.mjs && node scripts/gen-demo-data.mjs"
+  },
+  "dependencies": {
+    "node-ical": "^0.20.1"
+  }
+}

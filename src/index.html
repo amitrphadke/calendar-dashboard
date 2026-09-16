@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="bg">
+    <img class="bg-photo" id="photo-a" alt="" />
+    <img class="bg-photo" id="photo-b" alt="" />
+    <div class="bg-fallback" id="bg-fallback"></div>
+    <div class="bg-scrim"></div>
+  </div>
+
+  <div id="app">
+    <div id="main-col">
+      <header id="topbar">
+        <section class="panel" id="clock-block">
+          <div id="phase-icon">☀️</div>
+          <div id="clock-time">--:--</div>
+          <div id="phase-label">&nbsp;</div>
+          <div id="date-line">&nbsp;</div>
+        </section>
+
+        <section class="panel" id="countdown-block">
+          <h2>Days Remaining</h2>
+          <div id="countdown-list"></div>
+          <p id="countdown-empty" hidden>Mark an event important with a leading "!" in its title to see it here.</p>
+        </section>
+
+        <section class="panel" id="conflicts-block">
+          <h2>Conflicts</h2>
+          <div id="conflicts-list"></div>
+          <p id="conflicts-empty" hidden>No overlaps between your calendars.</p>
+        </section>
+      </header>
+
+      <section id="months">
+        <article class="month-card month-adjacent" id="month-prev" data-role="prev"></article>
+        <article class="month-card month-current" id="month-current" data-role="current"></article>
+        <article class="month-card month-adjacent" id="month-next" data-role="next"></article>
+      </section>
+
+      <footer id="legend">
+        <span class="legend-item"><span class="legend-dot" id="legend-dot-business"></span>Business</span>
+        <span class="legend-item"><span class="legend-dot" id="legend-dot-personal"></span>Personal</span>
+        <span class="legend-item"><span class="legend-star">★</span>Important</span>
+        <span class="legend-item"><span class="legend-conflict">!</span>Conflict</span>
+        <span class="legend-item"><span class="legend-festival-dot"></span>Festival</span>
+      </footer>
+    </div>
+
+    <aside class="panel" id="festival-sidebar">
+      <h2 id="festival-sidebar-title">India Festivals</h2>
+      <div id="festival-list"></div>
+    </aside>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
