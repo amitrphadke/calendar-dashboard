@@ -262,11 +262,26 @@ function groupEventsByDay(events) {
     }
     entry.colors.add(event.color || '#888');
     if (event.important) entry.important = true;
-    entry.titles.push(event.title);
+    // Events already arrive sorted by start time, so titles stay in that
+    // order here — no separate re-sort needed for the day-cell label.
+    entry.titles.push(formatDayLabel(event));
   }
   // Sets don't compare well downstream; freeze to arrays once.
   for (const entry of map.values()) entry.colors = [...entry.colors];
   return map;
+}
+
+// All-day events (advance payments, birthdays) show just the title — a time
+// would be meaningless. Timed events get a compact "10:30a" prefix so the
+// grid tells you when, not just what, without needing to tap/hover.
+function formatDayLabel(event) {
+  if (event.allDay) return event.title;
+  const time = event.startDate
+    .toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+    .replace(' ', '')
+    .replace(/AM$/i, 'a')
+    .replace(/PM$/i, 'p');
+  return `${time} ${event.title}`;
 }
 
 function groupFestivalsByDay(festivals) {
